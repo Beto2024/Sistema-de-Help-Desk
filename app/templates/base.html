@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Sistema de Help Desk{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'bg-primary': '#0f172a',
+                        'bg-secondary': '#1e293b',
+                        'bg-tertiary': '#334155',
+                        'accent-amber': '#f59e0b',
+                        'accent-green': '#22c55e',
+                        'accent-red': '#ef4444',
+                        'accent-blue': '#3b82f6',
+                        'accent-yellow': '#eab308',
+                        'text-primary': '#f8fafc',
+                        'text-secondary': '#94a3b8',
+                        'text-muted': '#64748b',
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
+</head>
+<body class="bg-bg-primary text-text-primary min-h-screen font-sans">
+
+    <!-- Navbar -->
+    <nav class="bg-bg-secondary border-b border-slate-700 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo -->
+                <div class="flex items-center space-x-3">
+                    <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-amber-500/20">
+                        <svg class="w-5 h-5 text-accent-amber" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"/>
+                        </svg>
+                    </div>
+                    <a href="{{ url_for('dashboard.dashboard') }}"
+                       class="text-lg font-bold text-white hover:text-accent-amber transition-colors">
+                        Help Desk
+                    </a>
+                </div>
+
+                <!-- Nav Links (desktop) -->
+                {% if current_user.is_authenticated %}
+                <div class="hidden md:flex items-center space-x-1">
+                    <a href="{{ url_for('dashboard.dashboard') }}"
+                       class="px-3 py-2 rounded-md text-sm font-medium text-text-secondary hover:text-white hover:bg-bg-tertiary transition-colors {% if request.endpoint == 'dashboard.dashboard' %}text-white bg-bg-tertiary{% endif %}">
+                        <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"/>
+                        </svg>
+                        Dashboard
+                    </a>
+                    <a href="{{ url_for('tickets.list_tickets') }}"
+                       class="px-3 py-2 rounded-md text-sm font-medium text-text-secondary hover:text-white hover:bg-bg-tertiary transition-colors {% if request.endpoint and 'tickets' in request.endpoint %}text-white bg-bg-tertiary{% endif %}">
+                        <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                        </svg>
+                        Chamados
+                    </a>
+                    <a href="{{ url_for('tickets.create') }}"
+                       class="px-3 py-2 rounded-md text-sm font-medium bg-accent-amber text-black hover:bg-amber-400 transition-colors">
+                        <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                        </svg>
+                        Novo Chamado
+                    </a>
+                </div>
+
+                <!-- User menu -->
+                <div class="flex items-center space-x-3">
+                    <div class="relative group">
+                        <button class="flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium text-text-secondary hover:text-white hover:bg-bg-tertiary transition-colors">
+                            <div class="w-7 h-7 rounded-full bg-amber-500/30 flex items-center justify-center">
+                                <span class="text-xs font-bold text-accent-amber">
+                                    {{ current_user.username[0].upper() }}
+                                </span>
+                            </div>
+                            <span class="hidden sm:block">{{ current_user.username }}</span>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </button>
+                        <div class="absolute right-0 mt-1 w-48 bg-bg-secondary border border-slate-700 rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 z-50">
+                            <div class="px-4 py-3 border-b border-slate-700">
+                                <p class="text-sm font-medium text-white">{{ current_user.username }}</p>
+                                <p class="text-xs text-text-muted capitalize">{{ current_user.role }}</p>
+                            </div>
+                            <a href="{{ url_for('auth.logout') }}"
+                               class="flex items-center space-x-2 px-4 py-2.5 text-sm text-text-secondary hover:text-white hover:bg-bg-tertiary transition-colors rounded-b-lg">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                                </svg>
+                                <span>Sair</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4 space-y-2">
+            {% for category, message in messages %}
+            <div class="flex items-center p-4 rounded-lg border
+                {% if category == 'success' %}bg-green-900/30 border-green-700 text-green-300
+                {% elif category == 'danger' or category == 'error' %}bg-red-900/30 border-red-700 text-red-300
+                {% elif category == 'warning' %}bg-yellow-900/30 border-yellow-700 text-yellow-300
+                {% else %}bg-blue-900/30 border-blue-700 text-blue-300{% endif %}">
+                <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    {% if category == 'success' %}
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    {% elif category == 'danger' or category == 'error' %}
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    {% else %}
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    {% endif %}
+                </svg>
+                <span class="text-sm">{{ message }}</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Main content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-800 mt-12 py-6">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <p class="text-text-muted text-sm">
+                Sistema de Help Desk &copy; 2024 — Desenvolvido com Flask &amp; Tailwind CSS
+            </p>
+        </div>
+    </footer>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

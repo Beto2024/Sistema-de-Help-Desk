@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+{% block title %}Chamados — Help Desk{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+    <div>
+        <h1 class="text-2xl font-bold text-white">Chamados</h1>
+        <p class="text-text-secondary text-sm mt-1">
+            {{ tickets.total }} chamado{{ 's' if tickets.total != 1 else '' }} encontrado{{ 's' if tickets.total != 1 else '' }}
+        </p>
+    </div>
+    <a href="{{ url_for('tickets.create') }}"
+       class="inline-flex items-center space-x-2 bg-accent-amber hover:bg-amber-400 text-black font-semibold px-4 py-2 rounded-lg transition-colors text-sm">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+        </svg>
+        <span>Novo Chamado</span>
+    </a>
+</div>
+
+<!-- Filters -->
+<div class="card-gradient rounded-xl p-5 mb-6">
+    <form method="GET" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+        <!-- Search -->
+        <div class="lg:col-span-2">
+            <input type="text" name="search" value="{{ search }}"
+                   placeholder="Buscar por título..."
+                   class="w-full bg-bg-tertiary border border-slate-600 text-white rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent placeholder-text-muted">
+        </div>
+
+        <!-- Status -->
+        <select name="status"
+                class="bg-bg-tertiary border border-slate-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500">
+            <option value="">Todos os status</option>
+            <option value="aberto" {{ 'selected' if status_filter == 'aberto' }}>Aberto</option>
+            <option value="em_andamento" {{ 'selected' if status_filter == 'em_andamento' }}>Em Andamento</option>
+            <option value="resolvido" {{ 'selected' if status_filter == 'resolvido' }}>Resolvido</option>
+            <option value="fechado" {{ 'selected' if status_filter == 'fechado' }}>Fechado</option>
+        </select>
+
+        <!-- Priority -->
+        <select name="priority"
+                class="bg-bg-tertiary border border-slate-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500">
+            <option value="">Todas as prioridades</option>
+            <option value="baixa" {{ 'selected' if priority_filter == 'baixa' }}>Baixa</option>
+            <option value="media" {{ 'selected' if priority_filter == 'media' }}>Média</option>
+            <option value="alta" {{ 'selected' if priority_filter == 'alta' }}>Alta</option>
+            <option value="critica" {{ 'selected' if priority_filter == 'critica' }}>Crítica</option>
+        </select>
+
+        <!-- Category -->
+        <select name="category"
+                class="bg-bg-tertiary border border-slate-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500">
+            <option value="">Todas as categorias</option>
+            <option value="hardware" {{ 'selected' if category_filter == 'hardware' }}>Hardware</option>
+            <option value="software" {{ 'selected' if category_filter == 'software' }}>Software</option>
+            <option value="rede" {{ 'selected' if category_filter == 'rede' }}>Rede</option>
+            <option value="acesso" {{ 'selected' if category_filter == 'acesso' }}>Acesso</option>
+            <option value="outro" {{ 'selected' if category_filter == 'outro' }}>Outro</option>
+        </select>
+
+        <!-- Submit row -->
+        <div class="flex space-x-2 sm:col-span-2 lg:col-span-5">
+            <button type="submit"
+                    class="bg-accent-amber hover:bg-amber-400 text-black font-semibold px-5 py-2 rounded-lg transition-colors text-sm">
+                Filtrar
+            </button>
+            <a href="{{ url_for('tickets.list_tickets') }}"
+               class="bg-bg-tertiary hover:bg-slate-600 text-text-secondary hover:text-white px-5 py-2 rounded-lg transition-colors text-sm">
+                Limpar
+            </a>
+        </div>
+    </form>
+</div>
+
+<!-- Tickets Table / Cards -->
+{% if tickets.items %}
+<div class="card-gradient rounded-xl overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="border-b border-slate-700 bg-bg-tertiary/40">
+                    <th class="text-left py-3 px-4 text-text-muted font-medium">#</th>
+                    <th class="text-left py-3 px-4 text-text-muted font-medium">Título</th>
+                    <th class="text-left py-3 px-4 text-text-muted font-medium hidden md:table-cell">Categoria</th>
+                    <th class="text-left py-3 px-4 text-text-muted font-medium">Prioridade</th>
+                    <th class="text-left py-3 px-4 text-text-muted font-medium">Status</th>
+                    <th class="text-left py-3 px-4 text-text-muted font-medium hidden lg:table-cell">Responsável</th>
+                    <th class="text-left py-3 px-4 text-text-muted font-medium hidden xl:table-cell">Criado</th>
+                    <th class="text-left py-3 px-4 text-text-muted font-medium">Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ticket in tickets.items %}
+                <tr class="border-b border-slate-800 hover:bg-bg-tertiary/30 transition-colors">
+                    <td class="py-3 px-4 text-text-muted font-mono text-xs">{{ ticket.id }}</td>
+                    <td class="py-3 px-4 max-w-xs">
+                        <a href="{{ url_for('tickets.detail', ticket_id=ticket.id) }}"
+                           class="text-white hover:text-accent-amber transition-colors font-medium block truncate">
+                            {{ ticket.title }}
+                        </a>
+                        <p class="text-text-muted text-xs mt-0.5">por {{ ticket.creator.username }}</p>
+                    </td>
+                    <td class="py-3 px-4 text-text-secondary hidden md:table-cell">{{ ticket.category_label() }}</td>
+                    <td class="py-3 px-4">
+                        <span class="badge-priority-{{ ticket.priority }}">{{ ticket.priority_label() }}</span>
+                    </td>
+                    <td class="py-3 px-4">
+                        <span class="badge-{{ ticket.status }}">{{ ticket.status_label() }}</span>
+                    </td>
+                    <td class="py-3 px-4 text-text-secondary hidden lg:table-cell text-xs">
+                        {{ ticket.assignee.username if ticket.assignee else '—' }}
+                    </td>
+                    <td class="py-3 px-4 text-text-muted hidden xl:table-cell text-xs">
+                        {{ ticket.created_at.strftime('%d/%m/%Y') }}
+                    </td>
+                    <td class="py-3 px-4">
+                        <a href="{{ url_for('tickets.detail', ticket_id=ticket.id) }}"
+                           class="text-accent-amber hover:text-amber-400 text-xs font-medium transition-colors">
+                            Ver →
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if tickets.pages > 1 %}
+    <div class="flex items-center justify-between px-4 py-3 border-t border-slate-700">
+        <p class="text-text-muted text-xs">
+            Página {{ tickets.page }} de {{ tickets.pages }}
+        </p>
+        <div class="flex space-x-1">
+            {% if tickets.has_prev %}
+            <a href="{{ url_for('tickets.list_tickets', page=tickets.prev_num, status=status_filter, priority=priority_filter, category=category_filter, search=search) }}"
+               class="px-3 py-1.5 rounded bg-bg-tertiary text-text-secondary hover:text-white text-xs transition-colors">
+                ← Anterior
+            </a>
+            {% endif %}
+            {% for page_num in tickets.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                {% if page_num %}
+                <a href="{{ url_for('tickets.list_tickets', page=page_num, status=status_filter, priority=priority_filter, category=category_filter, search=search) }}"
+                   class="px-3 py-1.5 rounded text-xs transition-colors {{ 'bg-accent-amber text-black font-semibold' if page_num == tickets.page else 'bg-bg-tertiary text-text-secondary hover:text-white' }}">
+                    {{ page_num }}
+                </a>
+                {% else %}
+                <span class="px-2 py-1.5 text-text-muted text-xs">…</span>
+                {% endif %}
+            {% endfor %}
+            {% if tickets.has_next %}
+            <a href="{{ url_for('tickets.list_tickets', page=tickets.next_num, status=status_filter, priority=priority_filter, category=category_filter, search=search) }}"
+               class="px-3 py-1.5 rounded bg-bg-tertiary text-text-secondary hover:text-white text-xs transition-colors">
+                Próxima →
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+{% else %}
+<!-- Empty state -->
+<div class="card-gradient rounded-xl p-12 text-center">
+    <svg class="w-16 h-16 text-text-muted mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+    </svg>
+    <h3 class="text-lg font-semibold text-white mb-2">Nenhum chamado encontrado</h3>
+    <p class="text-text-secondary text-sm mb-6">
+        {% if search or status_filter or priority_filter or category_filter %}
+            Tente ajustar os filtros de busca.
+        {% else %}
+            Seja o primeiro a abrir um chamado!
+        {% endif %}
+    </p>
+    <a href="{{ url_for('tickets.create') }}"
+       class="inline-flex items-center space-x-2 bg-accent-amber hover:bg-amber-400 text-black font-semibold px-5 py-2.5 rounded-lg transition-colors text-sm">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+        </svg>
+        <span>Abrir Chamado</span>
+    </a>
+</div>
+{% endif %}
+{% endblock %}

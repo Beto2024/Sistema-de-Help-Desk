@@ -1,0 +1,224 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — Help Desk{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="mb-8">
+    <h1 class="text-2xl font-bold text-white">Dashboard</h1>
+    <p class="text-text-secondary mt-1">Visão geral do sistema de chamados</p>
+</div>
+
+<!-- Stats Grid -->
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    <!-- Total -->
+    <div class="card-gradient rounded-xl p-5">
+        <div class="flex items-center justify-between mb-3">
+            <div class="w-10 h-10 rounded-lg bg-amber-500/20 flex items-center justify-center">
+                <svg class="w-5 h-5 text-accent-amber" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                </svg>
+            </div>
+        </div>
+        <p class="text-3xl font-bold text-white">{{ total }}</p>
+        <p class="text-text-secondary text-sm mt-1">Total de Chamados</p>
+    </div>
+
+    <!-- Abertos -->
+    <div class="card-gradient rounded-xl p-5">
+        <div class="flex items-center justify-between mb-3">
+            <div class="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                <svg class="w-5 h-5 text-accent-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/>
+                </svg>
+            </div>
+        </div>
+        <p class="text-3xl font-bold text-white">{{ abertos }}</p>
+        <p class="text-text-secondary text-sm mt-1">Abertos</p>
+    </div>
+
+    <!-- Em Andamento -->
+    <div class="card-gradient rounded-xl p-5">
+        <div class="flex items-center justify-between mb-3">
+            <div class="w-10 h-10 rounded-lg bg-yellow-500/20 flex items-center justify-center">
+                <svg class="w-5 h-5 text-accent-yellow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+            </div>
+        </div>
+        <p class="text-3xl font-bold text-white">{{ em_andamento }}</p>
+        <p class="text-text-secondary text-sm mt-1">Em Andamento</p>
+    </div>
+
+    <!-- Resolvidos -->
+    <div class="card-gradient rounded-xl p-5">
+        <div class="flex items-center justify-between mb-3">
+            <div class="w-10 h-10 rounded-lg bg-green-500/20 flex items-center justify-center">
+                <svg class="w-5 h-5 text-accent-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+            </div>
+        </div>
+        <p class="text-3xl font-bold text-white">{{ resolvidos }}</p>
+        <p class="text-text-secondary text-sm mt-1">Resolvidos</p>
+    </div>
+</div>
+
+<!-- Priority Breakdown -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+    <div class="card-gradient rounded-xl p-6">
+        <h2 class="text-lg font-semibold text-white mb-4">Por Prioridade</h2>
+        <div class="space-y-3">
+            <!-- Critica -->
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-red-500"></span>
+                    <span class="text-text-secondary text-sm">Crítica</span>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <div class="w-32 bg-slate-700 rounded-full h-1.5">
+                        <div class="bg-red-500 h-1.5 rounded-full"
+                             style="width: {{ ((critica / total * 100) if total > 0 else 0)|round|int }}%"></div>
+                    </div>
+                    <span class="text-white font-semibold text-sm w-6 text-right">{{ critica }}</span>
+                </div>
+            </div>
+            <!-- Alta -->
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-orange-500"></span>
+                    <span class="text-text-secondary text-sm">Alta</span>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <div class="w-32 bg-slate-700 rounded-full h-1.5">
+                        <div class="bg-orange-500 h-1.5 rounded-full"
+                             style="width: {{ ((alta / total * 100) if total > 0 else 0)|round|int }}%"></div>
+                    </div>
+                    <span class="text-white font-semibold text-sm w-6 text-right">{{ alta }}</span>
+                </div>
+            </div>
+            <!-- Media -->
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-yellow-500"></span>
+                    <span class="text-text-secondary text-sm">Média</span>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <div class="w-32 bg-slate-700 rounded-full h-1.5">
+                        <div class="bg-yellow-500 h-1.5 rounded-full"
+                             style="width: {{ ((media / total * 100) if total > 0 else 0)|round|int }}%"></div>
+                    </div>
+                    <span class="text-white font-semibold text-sm w-6 text-right">{{ media }}</span>
+                </div>
+            </div>
+            <!-- Baixa -->
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-green-500"></span>
+                    <span class="text-text-secondary text-sm">Baixa</span>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <div class="w-32 bg-slate-700 rounded-full h-1.5">
+                        <div class="bg-green-500 h-1.5 rounded-full"
+                             style="width: {{ ((baixa / total * 100) if total > 0 else 0)|round|int }}%"></div>
+                    </div>
+                    <span class="text-white font-semibold text-sm w-6 text-right">{{ baixa }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- My Tickets -->
+    <div class="card-gradient rounded-xl p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-semibold text-white">Meus Chamados</h2>
+            <a href="{{ url_for('tickets.list_tickets') }}?assignee=me"
+               class="text-xs text-accent-amber hover:text-amber-400 transition-colors">
+                Ver todos →
+            </a>
+        </div>
+        {% if my_tickets %}
+        <div class="space-y-2">
+            {% for ticket in my_tickets %}
+            <a href="{{ url_for('tickets.detail', ticket_id=ticket.id) }}"
+               class="flex items-center justify-between p-3 rounded-lg bg-bg-tertiary/50 hover:bg-bg-tertiary transition-colors">
+                <div class="flex items-center space-x-3 min-w-0">
+                    <span class="text-text-muted text-xs font-mono">#{{ ticket.id }}</span>
+                    <span class="text-sm text-white truncate">{{ ticket.title }}</span>
+                </div>
+                <span class="badge-{{ ticket.status }} ml-2 flex-shrink-0">{{ ticket.status_label() }}</span>
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-text-muted text-sm">Nenhum chamado associado a você.</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Recent Tickets -->
+<div class="card-gradient rounded-xl p-6">
+    <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-semibold text-white">Chamados Recentes</h2>
+        <a href="{{ url_for('tickets.list_tickets') }}"
+           class="text-xs text-accent-amber hover:text-amber-400 transition-colors">
+            Ver todos →
+        </a>
+    </div>
+
+    {% if recent_tickets %}
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="border-b border-slate-700">
+                    <th class="text-left py-2 px-3 text-text-muted font-medium">#</th>
+                    <th class="text-left py-2 px-3 text-text-muted font-medium">Título</th>
+                    <th class="text-left py-2 px-3 text-text-muted font-medium hidden md:table-cell">Categoria</th>
+                    <th class="text-left py-2 px-3 text-text-muted font-medium">Prioridade</th>
+                    <th class="text-left py-2 px-3 text-text-muted font-medium">Status</th>
+                    <th class="text-left py-2 px-3 text-text-muted font-medium hidden lg:table-cell">Criado</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ticket in recent_tickets %}
+                <tr class="border-b border-slate-800 hover:bg-bg-tertiary/30 transition-colors">
+                    <td class="py-3 px-3 text-text-muted font-mono">{{ ticket.id }}</td>
+                    <td class="py-3 px-3">
+                        <a href="{{ url_for('tickets.detail', ticket_id=ticket.id) }}"
+                           class="text-white hover:text-accent-amber transition-colors font-medium">
+                            {{ ticket.title }}
+                        </a>
+                    </td>
+                    <td class="py-3 px-3 text-text-secondary hidden md:table-cell">{{ ticket.category_label() }}</td>
+                    <td class="py-3 px-3">
+                        <span class="badge-priority-{{ ticket.priority }}">{{ ticket.priority_label() }}</span>
+                    </td>
+                    <td class="py-3 px-3">
+                        <span class="badge-{{ ticket.status }}">{{ ticket.status_label() }}</span>
+                    </td>
+                    <td class="py-3 px-3 text-text-muted hidden lg:table-cell text-xs">
+                        {{ ticket.created_at.strftime('%d/%m/%Y') }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="text-center py-8">
+        <svg class="w-12 h-12 text-text-muted mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+        </svg>
+        <p class="text-text-muted">Nenhum chamado ainda.</p>
+        <a href="{{ url_for('tickets.create') }}"
+           class="inline-block mt-3 text-sm text-accent-amber hover:text-amber-400 transition-colors">
+            Abrir primeiro chamado →
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}Abrir Chamado — Help Desk{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <!-- Breadcrumb -->
+    <nav class="flex items-center space-x-2 text-sm text-text-muted mb-6">
+        <a href="{{ url_for('tickets.list_tickets') }}" class="hover:text-accent-amber transition-colors">Chamados</a>
+        <span>/</span>
+        <span class="text-text-secondary">Novo Chamado</span>
+    </nav>
+
+    <div class="card-gradient rounded-xl p-8">
+        <h1 class="text-xl font-bold text-white mb-6">Abrir Novo Chamado</h1>
+
+        <form method="POST" novalidate>
+            {{ form.hidden_tag() }}
+            <div class="space-y-5">
+
+                <!-- Title -->
+                <div>
+                    <label class="block text-sm font-medium text-text-secondary mb-1.5">
+                        {{ form.title.label.text }} <span class="text-red-400">*</span>
+                    </label>
+                    {{ form.title(
+                        class="w-full bg-bg-tertiary border border-slate-600 text-white rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent placeholder-text-muted",
+                        placeholder="Descreva o problema brevemente..."
+                    ) }}
+                    {% for error in form.title.errors %}
+                        <p class="mt-1 text-xs text-red-400">{{ error }}</p>
+                    {% endfor %}
+                </div>
+
+                <!-- Description -->
+                <div>
+                    <label class="block text-sm font-medium text-text-secondary mb-1.5">
+                        {{ form.description.label.text }} <span class="text-red-400">*</span>
+                    </label>
+                    {{ form.description(
+                        class="w-full bg-bg-tertiary border border-slate-600 text-white rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent placeholder-text-muted resize-y",
+                        rows="5",
+                        placeholder="Descreva detalhadamente o problema, incluindo passos para reproduzir, mensagens de erro, etc."
+                    ) }}
+                    {% for error in form.description.errors %}
+                        <p class="mt-1 text-xs text-red-400">{{ error }}</p>
+                    {% endfor %}
+                </div>
+
+                <!-- Category & Priority -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-text-secondary mb-1.5">
+                            {{ form.category.label.text }} <span class="text-red-400">*</span>
+                        </label>
+                        {{ form.category(
+                            class="w-full bg-bg-tertiary border border-slate-600 text-white rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                        ) }}
+                        {% for error in form.category.errors %}
+                            <p class="mt-1 text-xs text-red-400">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-text-secondary mb-1.5">
+                            {{ form.priority.label.text }} <span class="text-red-400">*</span>
+                        </label>
+                        {{ form.priority(
+                            class="w-full bg-bg-tertiary border border-slate-600 text-white rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                        ) }}
+                        {% for error in form.priority.errors %}
+                            <p class="mt-1 text-xs text-red-400">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Priority Info -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                    <div class="flex items-center space-x-1.5 p-2 rounded-lg bg-green-900/20 border border-green-800/50">
+                        <span class="w-2 h-2 rounded-full bg-green-500 flex-shrink-0"></span>
+                        <span class="text-green-300">Baixa</span>
+                    </div>
+                    <div class="flex items-center space-x-1.5 p-2 rounded-lg bg-yellow-900/20 border border-yellow-800/50">
+                        <span class="w-2 h-2 rounded-full bg-yellow-500 flex-shrink-0"></span>
+                        <span class="text-yellow-300">Média</span>
+                    </div>
+                    <div class="flex items-center space-x-1.5 p-2 rounded-lg bg-orange-900/20 border border-orange-800/50">
+                        <span class="w-2 h-2 rounded-full bg-orange-500 flex-shrink-0"></span>
+                        <span class="text-orange-300">Alta</span>
+                    </div>
+                    <div class="flex items-center space-x-1.5 p-2 rounded-lg bg-red-900/20 border border-red-800/50">
+                        <span class="w-2 h-2 rounded-full bg-red-500 flex-shrink-0"></span>
+                        <span class="text-red-300">Crítica</span>
+                    </div>
+                </div>
+
+                <!-- Buttons -->
+                <div class="flex items-center justify-between pt-2">
+                    <a href="{{ url_for('tickets.list_tickets') }}"
+                       class="text-sm text-text-secondary hover:text-white transition-colors">
+                        ← Cancelar
+                    </a>
+                    <button type="submit"
+                            class="bg-accent-amber hover:bg-amber-400 text-black font-semibold px-6 py-2.5 rounded-lg transition-colors text-sm">
+                        Abrir Chamado
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
