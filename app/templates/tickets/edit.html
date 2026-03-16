@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% block title %}Editar Chamado #{{ ticket.id }} — Help Desk{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <!-- Breadcrumb -->
+    <nav class="flex items-center space-x-2 text-sm text-text-muted mb-6">
+        <a href="{{ url_for('tickets.list_tickets') }}" class="hover:text-accent-amber transition-colors">Chamados</a>
+        <span>/</span>
+        <a href="{{ url_for('tickets.detail', ticket_id=ticket.id) }}" class="hover:text-accent-amber transition-colors">
+            #{{ ticket.id }}
+        </a>
+        <span>/</span>
+        <span class="text-text-secondary">Editar</span>
+    </nav>
+
+    <div class="card-gradient rounded-xl p-8">
+        <h1 class="text-xl font-bold text-white mb-6">Editar Chamado #{{ ticket.id }}</h1>
+
+        <form method="POST" novalidate>
+            {{ form.hidden_tag() }}
+            <div class="space-y-5">
+
+                <!-- Title -->
+                <div>
+                    <label class="block text-sm font-medium text-text-secondary mb-1.5">
+                        {{ form.title.label.text }} <span class="text-red-400">*</span>
+                    </label>
+                    {{ form.title(
+                        class="w-full bg-bg-tertiary border border-slate-600 text-white rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent placeholder-text-muted"
+                    ) }}
+                    {% for error in form.title.errors %}
+                        <p class="mt-1 text-xs text-red-400">{{ error }}</p>
+                    {% endfor %}
+                </div>
+
+                <!-- Description -->
+                <div>
+                    <label class="block text-sm font-medium text-text-secondary mb-1.5">
+                        {{ form.description.label.text }} <span class="text-red-400">*</span>
+                    </label>
+                    {{ form.description(
+                        class="w-full bg-bg-tertiary border border-slate-600 text-white rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent placeholder-text-muted resize-y",
+                        rows="5"
+                    ) }}
+                    {% for error in form.description.errors %}
+                        <p class="mt-1 text-xs text-red-400">{{ error }}</p>
+                    {% endfor %}
+                </div>
+
+                <!-- Category & Priority -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-text-secondary mb-1.5">
+                            {{ form.category.label.text }}
+                        </label>
+                        {{ form.category(
+                            class="w-full bg-bg-tertiary border border-slate-600 text-white rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                        ) }}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-text-secondary mb-1.5">
+                            {{ form.priority.label.text }}
+                        </label>
+                        {{ form.priority(
+                            class="w-full bg-bg-tertiary border border-slate-600 text-white rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                        ) }}
+                    </div>
+                </div>
+
+                <!-- Status -->
+                <div>
+                    <label class="block text-sm font-medium text-text-secondary mb-1.5">
+                        {{ form.status.label.text }}
+                    </label>
+                    {{ form.status(
+                        class="w-full bg-bg-tertiary border border-slate-600 text-white rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                    ) }}
+                    {% if not current_user.is_admin() %}
+                    <p class="mt-1 text-xs text-text-muted">Apenas administradores podem fechar chamados.</p>
+                    {% endif %}
+                </div>
+
+                <!-- Assignee (only for tecnico/admin) -->
+                {% if current_user.is_tecnico() %}
+                <div>
+                    <label class="block text-sm font-medium text-text-secondary mb-1.5">
+                        {{ form.assignee_id.label.text }}
+                    </label>
+                    {{ form.assignee_id(
+                        class="w-full bg-bg-tertiary border border-slate-600 text-white rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                    ) }}
+                </div>
+                {% endif %}
+
+                <!-- Buttons -->
+                <div class="flex items-center justify-between pt-2">
+                    <a href="{{ url_for('tickets.detail', ticket_id=ticket.id) }}"
+                       class="text-sm text-text-secondary hover:text-white transition-colors">
+                        ← Cancelar
+                    </a>
+                    <button type="submit"
+                            class="bg-accent-amber hover:bg-amber-400 text-black font-semibold px-6 py-2.5 rounded-lg transition-colors text-sm">
+                        Salvar Alterações
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,264 @@
+{% extends "base.html" %}
+{% block title %}Chamado #{{ ticket.id }} — Help Desk{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb -->
+<nav class="flex items-center space-x-2 text-sm text-text-muted mb-6">
+    <a href="{{ url_for('tickets.list_tickets') }}" class="hover:text-accent-amber transition-colors">Chamados</a>
+    <span>/</span>
+    <span class="text-text-secondary">#{{ ticket.id }}</span>
+</nav>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Main Content -->
+    <div class="lg:col-span-2 space-y-6">
+        <!-- Ticket Header -->
+        <div class="card-gradient rounded-xl p-6">
+            <div class="flex items-start justify-between gap-4 mb-4">
+                <h1 class="text-xl font-bold text-white leading-tight">{{ ticket.title }}</h1>
+                <div class="flex items-center space-x-2 flex-shrink-0">
+                    {% if current_user.id == ticket.creator_id or current_user.is_tecnico() %}
+                    <a href="{{ url_for('tickets.edit', ticket_id=ticket.id) }}"
+                       class="px-3 py-1.5 bg-bg-tertiary hover:bg-slate-600 text-text-secondary hover:text-white rounded-lg text-xs font-medium transition-colors">
+                        Editar
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2 mb-5">
+                <span class="badge-priority-{{ ticket.priority }} text-xs">{{ ticket.priority_label() }}</span>
+                <span class="badge-{{ ticket.status }} text-xs">{{ ticket.status_label() }}</span>
+                <span class="px-2 py-0.5 rounded-full text-xs bg-bg-tertiary text-text-secondary">
+                    {{ ticket.category_label() }}
+                </span>
+            </div>
+
+            <div class="prose prose-invert max-w-none">
+                <p class="text-text-secondary text-sm leading-relaxed whitespace-pre-wrap">{{ ticket.description }}</p>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-4 mt-5 pt-5 border-t border-slate-700 text-xs text-text-muted">
+                <span>Criado por <span class="text-text-secondary font-medium">{{ ticket.creator.username }}</span></span>
+                <span>em {{ ticket.created_at.strftime('%d/%m/%Y às %H:%M') }}</span>
+                {% if ticket.updated_at and ticket.updated_at != ticket.created_at %}
+                <span>· Atualizado em {{ ticket.updated_at.strftime('%d/%m/%Y às %H:%M') }}</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Quick Status Change -->
+        {% if current_user.id == ticket.creator_id or current_user.is_tecnico() or current_user.id == ticket.assignee_id %}
+        <div class="card-gradient rounded-xl p-5">
+            <h3 class="text-sm font-semibold text-text-secondary uppercase tracking-wider mb-3">Alterar Status</h3>
+            <form method="POST" action="{{ url_for('tickets.change_status', ticket_id=ticket.id) }}"
+                  class="flex flex-wrap gap-2">
+                {{ comment_form.hidden_tag() }}
+                {% set statuses = [('aberto', 'Aberto'), ('em_andamento', 'Em Andamento'), ('resolvido', 'Resolvido')] %}
+                {% if current_user.is_admin() %}
+                    {% set statuses = [('aberto', 'Aberto'), ('em_andamento', 'Em Andamento'), ('resolvido', 'Resolvido'), ('fechado', 'Fechado')] %}
+                {% endif %}
+                {% for val, label in statuses %}
+                <button type="submit" name="status" value="{{ val }}"
+                        class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors
+                        {{ 'bg-accent-amber text-black cursor-default' if ticket.status == val else 'bg-bg-tertiary text-text-secondary hover:text-white hover:bg-slate-600' }}">
+                    {{ label }}
+                </button>
+                {% endfor %}
+            </form>
+        </div>
+        {% endif %}
+
+        <!-- Comments Section -->
+        <div class="card-gradient rounded-xl p-6">
+            <h2 class="text-lg font-semibold text-white mb-5">
+                Comentários
+                {% if comments %}
+                <span class="text-text-muted text-sm font-normal ml-1">({{ comments|length }})</span>
+                {% endif %}
+            </h2>
+
+            {% if comments %}
+            <div class="space-y-4 mb-6">
+                {% for comment in comments %}
+                <div class="flex space-x-3">
+                    <div class="w-8 h-8 rounded-full bg-amber-500/20 flex items-center justify-center flex-shrink-0">
+                        <span class="text-xs font-bold text-accent-amber">
+                            {{ comment.author.username[0].upper() }}
+                        </span>
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex items-center space-x-2 mb-1">
+                            <span class="text-sm font-medium text-white">{{ comment.author.username }}</span>
+                            <span class="text-xs text-text-muted">{{ comment.created_at.strftime('%d/%m/%Y às %H:%M') }}</span>
+                        </div>
+                        <p class="text-text-secondary text-sm leading-relaxed whitespace-pre-wrap">{{ comment.content }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Add Comment Form -->
+            <form method="POST" action="{{ url_for('tickets.add_comment', ticket_id=ticket.id) }}" novalidate>
+                {{ comment_form.hidden_tag() }}
+                <div class="mb-3">
+                    {{ comment_form.content(
+                        class="w-full bg-bg-tertiary border border-slate-600 text-white rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent placeholder-text-muted resize-y",
+                        rows="3",
+                        placeholder="Adicione um comentário..."
+                    ) }}
+                    {% for error in comment_form.content.errors %}
+                        <p class="mt-1 text-xs text-red-400">{{ error }}</p>
+                    {% endfor %}
+                </div>
+                <button type="submit"
+                        class="bg-accent-amber hover:bg-amber-400 text-black font-semibold px-4 py-2 rounded-lg transition-colors text-sm">
+                    Comentar
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="space-y-4">
+        <!-- Ticket Info -->
+        <div class="card-gradient rounded-xl p-5">
+            <h3 class="text-sm font-semibold text-text-secondary uppercase tracking-wider mb-4">Informações</h3>
+            <div class="space-y-3">
+                <div>
+                    <p class="text-xs text-text-muted mb-1">Status</p>
+                    <span class="badge-{{ ticket.status }}">{{ ticket.status_label() }}</span>
+                </div>
+                <div>
+                    <p class="text-xs text-text-muted mb-1">Prioridade</p>
+                    <span class="badge-priority-{{ ticket.priority }}">{{ ticket.priority_label() }}</span>
+                </div>
+                <div>
+                    <p class="text-xs text-text-muted mb-1">Categoria</p>
+                    <p class="text-sm text-text-secondary">{{ ticket.category_label() }}</p>
+                </div>
+                <div>
+                    <p class="text-xs text-text-muted mb-1">Criado por</p>
+                    <p class="text-sm text-text-secondary">{{ ticket.creator.username }}</p>
+                </div>
+                <div>
+                    <p class="text-xs text-text-muted mb-1">Data de Abertura</p>
+                    <p class="text-sm text-text-secondary">{{ ticket.created_at.strftime('%d/%m/%Y %H:%M') }}</p>
+                </div>
+                {% if ticket.closed_at %}
+                <div>
+                    <p class="text-xs text-text-muted mb-1">Data de Fechamento</p>
+                    <p class="text-sm text-text-secondary">{{ ticket.closed_at.strftime('%d/%m/%Y %H:%M') }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Assignee -->
+        <div class="card-gradient rounded-xl p-5">
+            <h3 class="text-sm font-semibold text-text-secondary uppercase tracking-wider mb-4">Responsável</h3>
+            {% if ticket.assignee %}
+            <div class="flex items-center space-x-2 mb-3">
+                <div class="w-8 h-8 rounded-full bg-amber-500/20 flex items-center justify-center">
+                    <span class="text-xs font-bold text-accent-amber">{{ ticket.assignee.username[0].upper() }}</span>
+                </div>
+                <div>
+                    <p class="text-sm text-white font-medium">{{ ticket.assignee.username }}</p>
+                    <p class="text-xs text-text-muted capitalize">{{ ticket.assignee.role }}</p>
+                </div>
+            </div>
+            {% else %}
+            <p class="text-text-muted text-sm mb-3">Sem responsável atribuído</p>
+            {% endif %}
+
+            {% if current_user.is_tecnico() %}
+            <form method="POST" action="{{ url_for('tickets.assign', ticket_id=ticket.id) }}">
+                {{ comment_form.hidden_tag() }}
+                <select name="assignee_id"
+                        class="w-full bg-bg-tertiary border border-slate-600 text-white rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500 mb-2">
+                    <option value="0">— Sem responsável —</option>
+                    {% for tech in technicians %}
+                    <option value="{{ tech.id }}" {{ 'selected' if ticket.assignee_id == tech.id }}>
+                        {{ tech.username }} ({{ tech.role }})
+                    </option>
+                    {% endfor %}
+                </select>
+                <button type="submit"
+                        class="w-full bg-bg-tertiary hover:bg-slate-600 text-text-secondary hover:text-white text-xs font-medium py-2 rounded-lg transition-colors">
+                    Atribuir
+                </button>
+            </form>
+            {% endif %}
+        </div>
+
+        <!-- History -->
+        <div class="card-gradient rounded-xl p-5">
+            <h3 class="text-sm font-semibold text-text-secondary uppercase tracking-wider mb-4">
+                Histórico
+                {% if history %}
+                <span class="text-text-muted font-normal normal-case">({{ history|length }})</span>
+                {% endif %}
+            </h3>
+
+            {% if history %}
+            <div class="relative">
+                <div class="absolute left-2.5 top-0 bottom-0 w-0.5 bg-slate-700"></div>
+                <div class="space-y-4 ml-6">
+                    {% for entry in history %}
+                    <div class="relative">
+                        <div class="absolute -left-6 top-1 w-4 h-4 rounded-full border-2 border-slate-700
+                            {% if entry.field_changed == 'criacao' %}bg-accent-amber border-amber-500/50
+                            {% elif entry.field_changed == 'status' %}bg-accent-blue border-blue-500/50
+                            {% elif entry.field_changed == 'prioridade' %}bg-accent-red border-red-500/50
+                            {% elif entry.field_changed == 'responsavel' %}bg-accent-green border-green-500/50
+                            {% else %}bg-bg-tertiary{% endif %}
+                            flex items-center justify-center">
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-1.5 flex-wrap">
+                                <span class="text-xs font-medium text-white">{{ entry.user.username }}</span>
+                                <span class="text-xs text-text-muted">
+                                    {% if entry.field_changed == 'criacao' %}
+                                        abriu o chamado
+                                    {% elif entry.field_changed == 'status' %}
+                                        alterou o status
+                                    {% elif entry.field_changed == 'prioridade' %}
+                                        alterou a prioridade
+                                    {% elif entry.field_changed == 'responsavel' %}
+                                        alterou o responsável
+                                    {% elif entry.field_changed == 'titulo' %}
+                                        editou o título
+                                    {% elif entry.field_changed == 'descricao' %}
+                                        editou a descrição
+                                    {% elif entry.field_changed == 'categoria' %}
+                                        alterou a categoria
+                                    {% else %}
+                                        alterou {{ entry.field_changed }}
+                                    {% endif %}
+                                </span>
+                            </div>
+                            {% if entry.old_value and entry.new_value %}
+                            <p class="text-xs text-text-muted mt-0.5">
+                                <span class="line-through">{{ entry.old_value }}</span>
+                                <span class="mx-1">→</span>
+                                <span class="text-text-secondary">{{ entry.new_value }}</span>
+                            </p>
+                            {% elif entry.new_value and entry.field_changed == 'criacao' %}
+                            <p class="text-xs text-text-muted mt-0.5">{{ entry.new_value }}</p>
+                            {% endif %}
+                            <p class="text-xs text-text-muted mt-0.5">
+                                {{ entry.changed_at.strftime('%d/%m/%Y %H:%M') }}
+                            </p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% else %}
+            <p class="text-text-muted text-xs">Nenhum histórico disponível.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

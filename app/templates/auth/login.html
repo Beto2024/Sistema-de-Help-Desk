@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}Login — Help Desk{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center -mt-6">
+    <div class="w-full max-w-md">
+        <!-- Logo -->
+        <div class="text-center mb-8">
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-amber-500/20 mb-4">
+                <svg class="w-8 h-8 text-accent-amber" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"/>
+                </svg>
+            </div>
+            <h1 class="text-2xl font-bold text-white">Sistema de Help Desk</h1>
+            <p class="text-text-secondary mt-1">Faça login para continuar</p>
+        </div>
+
+        <!-- Card -->
+        <div class="card-gradient rounded-xl p-8">
+            <form method="POST" novalidate>
+                {{ form.hidden_tag() }}
+
+                <div class="space-y-5">
+                    <!-- Username -->
+                    <div>
+                        <label class="block text-sm font-medium text-text-secondary mb-1.5">
+                            {{ form.username.label.text }}
+                        </label>
+                        {{ form.username(
+                            class="w-full bg-bg-tertiary border border-slate-600 text-white rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent placeholder-text-muted",
+                            placeholder="Seu usuário"
+                        ) }}
+                        {% for error in form.username.errors %}
+                            <p class="mt-1 text-xs text-red-400">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Password -->
+                    <div>
+                        <label class="block text-sm font-medium text-text-secondary mb-1.5">
+                            {{ form.password.label.text }}
+                        </label>
+                        {{ form.password(
+                            class="w-full bg-bg-tertiary border border-slate-600 text-white rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent placeholder-text-muted",
+                            placeholder="Sua senha"
+                        ) }}
+                        {% for error in form.password.errors %}
+                            <p class="mt-1 text-xs text-red-400">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Submit -->
+                    <button type="submit"
+                            class="w-full bg-accent-amber hover:bg-amber-400 text-black font-semibold py-2.5 rounded-lg transition-colors text-sm">
+                        Entrar no Sistema
+                    </button>
+                </div>
+            </form>
+
+            <div class="mt-6 text-center">
+                <p class="text-text-secondary text-sm">
+                    Não tem uma conta?
+                    <a href="{{ url_for('auth.register') }}" class="text-accent-amber hover:text-amber-400 font-medium transition-colors">
+                        Registre-se
+                    </a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
