@@ -34,6 +34,11 @@ def create_app(config_class=Config):
             from app.seed import seed_database
             seed_database(db)
 
+    @app.errorhandler(403)
+    def forbidden_error(error):
+        from flask import render_template
+        return render_template('errors/403.html'), 403
+
     @app.errorhandler(404)
     def not_found_error(error):
         from flask import render_template

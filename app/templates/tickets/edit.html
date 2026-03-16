@@ -49,6 +49,7 @@
                 </div>
 
                 <!-- Category & Priority -->
+                {% if current_user.is_admin() or current_user.role == 'tecnico' %}
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-text-secondary mb-1.5">
@@ -80,9 +81,10 @@
                     <p class="mt-1 text-xs text-text-muted">Apenas administradores podem fechar chamados.</p>
                     {% endif %}
                 </div>
+                {% endif %}
 
-                <!-- Assignee (only for tecnico/admin) -->
-                {% if current_user.is_tecnico() %}
+                <!-- Assignee (only for admin) -->
+                {% if current_user.is_admin() %}
                 <div>
                     <label class="block text-sm font-medium text-text-secondary mb-1.5">
                         {{ form.assignee_id.label.text }}

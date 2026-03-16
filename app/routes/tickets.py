@@ -10,6 +10,18 @@ tickets_bp = Blueprint('tickets', __name__, url_prefix='/tickets')
 PRIORITY_ORDER = {'critica': 4, 'alta': 3, 'media': 2, 'baixa': 1}
 
 
+def _check_ticket_access(ticket):
+    """Abort with 403 if current user cannot access the given ticket."""
+    if current_user.is_admin():
+        return
+    if current_user.role == 'tecnico':
+        if ticket.assignee_id != current_user.id and ticket.creator_id != current_user.id:
+            abort(403)
+    else:  # usuario
+        if ticket.creator_id != current_user.id:
+            abort(403)
+
+
 @tickets_bp.route('/')
 @login_required
 def list_tickets():
@@ -20,7 +32,14 @@ def list_tickets():
     assignee_filter = request.args.get('assignee', '')
     search = request.args.get('search', '').strip()
 
-    query = Ticket.query
+    if current_user.is_admin():
+        query = Ticket.query
+    elif current_user.role == 'tecnico':
+        query = Ticket.query.filter(
+            (Ticket.assignee_id == current_user.id) | (Ticket.creator_id == current_user.id)
+        )
+    else:  # usuario
+        query = Ticket.query.filter(Ticket.creator_id == current_user.id)
 
     if status_filter:
         query = query.filter(Ticket.status == status_filter)
@@ -28,7 +47,7 @@ def list_tickets():
         query = query.filter(Ticket.priority == priority_filter)
     if category_filter:
         query = query.filter(Ticket.category == category_filter)
-    if assignee_filter:
+    if current_user.is_admin() and assignee_filter:
         if assignee_filter == 'me':
             query = query.filter(Ticket.assignee_id == current_user.id)
         elif assignee_filter == 'unassigned':
@@ -44,7 +63,7 @@ def list_tickets():
     tickets = query.order_by(Ticket.created_at.desc()).paginate(
         page=page, per_page=15, error_out=False)
 
-    technicians = User.query.filter(User.role.in_(['admin', 'tecnico'])).all()
+    technicians = User.query.filter(User.role.in_(['admin', 'tecnico'])).all() if current_user.is_admin() else []
 
     return render_template('tickets/list.html',
                            tickets=tickets,
@@ -90,6 +109,10 @@ def create():
 @login_required
 def detail(ticket_id):
     ticket = Ticket.query.get_or_404(ticket_id)
+
+    # Permission check
+    _check_ticket_access(ticket)
+
     comment_form = CommentForm()
     comments = ticket.comments.order_by(Comment.created_at.asc()).all()
     history = ticket.history.order_by(TicketHistory.changed_at.asc()).all()
@@ -106,6 +129,10 @@ def detail(ticket_id):
 @login_required
 def add_comment(ticket_id):
     ticket = Ticket.query.get_or_404(ticket_id)
+
+    # Permission check (same logic as detail)
+    _check_ticket_access(ticket)
+
     form = CommentForm()
     if form.validate_on_submit():
         comment = Comment(
@@ -126,20 +153,27 @@ def add_comment(ticket_id):
 def edit(ticket_id):
     ticket = Ticket.query.get_or_404(ticket_id)
 
-    # Only creator, admin, or assigned technician can edit
-    if (current_user.id != ticket.creator_id and
-            not current_user.is_admin() and
-            current_user.id != ticket.assignee_id):
-        flash('Você não tem permissão para editar este chamado.', 'danger')
-        return redirect(url_for('tickets.detail', ticket_id=ticket_id))
+    # Permission check: admin can edit any; tecnico only assigned; usuario only their own
+    if not current_user.is_admin():
+        if current_user.role == 'tecnico':
+            if ticket.assignee_id != current_user.id and ticket.creator_id != current_user.id:
+                flash('Você não tem permissão para editar este chamado.', 'danger')
+                return redirect(url_for('tickets.detail', ticket_id=ticket_id))
+        else:  # usuario
+            if ticket.creator_id != current_user.id:
+                flash('Você não tem permissão para editar este chamado.', 'danger')
+                return redirect(url_for('tickets.detail', ticket_id=ticket_id))
 
     form = EditTicketForm(obj=ticket)
 
-    # Populate assignee choices
-    technicians = User.query.filter(User.role.in_(['admin', 'tecnico'])).all()
-    form.assignee_id.choices = [(0, '— Sem responsável —')] + [
-        (t.id, f'{t.username} ({t.role})') for t in technicians
-    ]
+    # Populate assignee choices (only for admin)
+    if current_user.is_admin():
+        technicians = User.query.filter(User.role.in_(['admin', 'tecnico'])).all()
+        form.assignee_id.choices = [(0, '— Sem responsável —')] + [
+            (t.id, f'{t.username} ({t.role})') for t in technicians
+        ]
+    else:
+        form.assignee_id.choices = [(0, '— Sem responsável —')]
 
     # Restrict status changes
     if not current_user.is_admin():
@@ -161,39 +195,43 @@ def edit(ticket_id):
             changes.append(('descricao', ticket.description[:100], form.description.data[:100]))
             ticket.description = form.description.data
 
-        if ticket.category != form.category.data:
-            changes.append(('categoria',
-                            ticket.category_label(),
-                            Ticket.CATEGORY_LABELS.get(form.category.data, form.category.data)))
-            ticket.category = form.category.data
+        # Only tecnico and admin can change category and priority
+        if current_user.is_admin() or current_user.role == 'tecnico':
+            if ticket.category != form.category.data:
+                changes.append(('categoria',
+                                ticket.category_label(),
+                                Ticket.CATEGORY_LABELS.get(form.category.data, form.category.data)))
+                ticket.category = form.category.data
 
-        if ticket.priority != form.priority.data:
-            changes.append(('prioridade',
-                            ticket.priority_label(),
-                            Ticket.PRIORITY_LABELS.get(form.priority.data, form.priority.data)))
-            ticket.priority = form.priority.data
+            if ticket.priority != form.priority.data:
+                changes.append(('prioridade',
+                                ticket.priority_label(),
+                                Ticket.PRIORITY_LABELS.get(form.priority.data, form.priority.data)))
+                ticket.priority = form.priority.data
 
-        old_status = ticket.status
-        if ticket.status != form.status.data:
-            if form.status.data == 'fechado' and not current_user.is_admin():
-                flash('Apenas administradores podem fechar chamados.', 'warning')
-            else:
-                changes.append(('status',
-                                ticket.status_label(),
-                                Ticket.STATUS_LABELS.get(form.status.data, form.status.data)))
-                ticket.status = form.status.data
-                if form.status.data == 'fechado':
-                    ticket.closed_at = datetime.now(timezone.utc)
-                elif old_status == 'fechado':
-                    ticket.closed_at = None
+            old_status = ticket.status
+            if ticket.status != form.status.data:
+                if form.status.data == 'fechado' and not current_user.is_admin():
+                    flash('Apenas administradores podem fechar chamados.', 'warning')
+                else:
+                    changes.append(('status',
+                                    ticket.status_label(),
+                                    Ticket.STATUS_LABELS.get(form.status.data, form.status.data)))
+                    ticket.status = form.status.data
+                    if form.status.data == 'fechado':
+                        ticket.closed_at = datetime.now(timezone.utc)
+                    elif old_status == 'fechado':
+                        ticket.closed_at = None
 
-        new_assignee_id = form.assignee_id.data if form.assignee_id.data != 0 else None
-        if current_user.is_tecnico() and ticket.assignee_id != new_assignee_id:
-            old_name = ticket.assignee.username if ticket.assignee else 'Nenhum'
-            new_assignee = User.query.get(new_assignee_id) if new_assignee_id else None
-            new_name = new_assignee.username if new_assignee else 'Nenhum'
-            changes.append(('responsavel', old_name, new_name))
-            ticket.assignee_id = new_assignee_id
+        # Only admin can change assignee
+        if current_user.is_admin():
+            new_assignee_id = form.assignee_id.data if form.assignee_id.data != 0 else None
+            if ticket.assignee_id != new_assignee_id:
+                old_name = ticket.assignee.username if ticket.assignee else 'Nenhum'
+                new_assignee = User.query.get(new_assignee_id) if new_assignee_id else None
+                new_name = new_assignee.username if new_assignee else 'Nenhum'
+                changes.append(('responsavel', old_name, new_name))
+                ticket.assignee_id = new_assignee_id
 
         ticket.updated_at = datetime.now(timezone.utc)
 
@@ -227,8 +265,8 @@ def edit(ticket_id):
 @login_required
 def assign(ticket_id):
     ticket = Ticket.query.get_or_404(ticket_id)
-    if not current_user.is_tecnico():
-        flash('Apenas técnicos e administradores podem atribuir responsáveis.', 'danger')
+    if not current_user.is_admin():
+        flash('Apenas administradores podem atribuir responsáveis.', 'danger')
         return redirect(url_for('tickets.detail', ticket_id=ticket_id))
 
     assignee_id = request.form.get('assignee_id', type=int)
@@ -264,15 +302,21 @@ def change_status(ticket_id):
         flash('Status inválido.', 'danger')
         return redirect(url_for('tickets.detail', ticket_id=ticket_id))
 
+    # Usuarios cannot change status
+    if current_user.role == 'usuario':
+        flash('Você não tem permissão para alterar o status de chamados.', 'danger')
+        return redirect(url_for('tickets.detail', ticket_id=ticket_id))
+
+    # Only admin can close tickets
     if new_status == 'fechado' and not current_user.is_admin():
         flash('Apenas administradores podem fechar chamados.', 'warning')
         return redirect(url_for('tickets.detail', ticket_id=ticket_id))
 
-    if (current_user.id != ticket.creator_id and
-            not current_user.is_tecnico() and
-            current_user.id != ticket.assignee_id):
-        flash('Você não tem permissão para alterar o status deste chamado.', 'danger')
-        return redirect(url_for('tickets.detail', ticket_id=ticket_id))
+    # Tecnico can only change status of assigned tickets
+    if current_user.role == 'tecnico':
+        if ticket.assignee_id != current_user.id and ticket.creator_id != current_user.id:
+            flash('Você não tem permissão para alterar o status deste chamado.', 'danger')
+            return redirect(url_for('tickets.detail', ticket_id=ticket_id))
 
     old_label = ticket.status_label()
     old_status = ticket.status

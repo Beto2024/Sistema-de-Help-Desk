@@ -16,23 +16,29 @@ def index():
 @dashboard_bp.route('/dashboard')
 @login_required
 def dashboard():
-    total = Ticket.query.count()
-    abertos = Ticket.query.filter_by(status='aberto').count()
-    em_andamento = Ticket.query.filter_by(status='em_andamento').count()
-    resolvidos = Ticket.query.filter_by(status='resolvido').count()
-    fechados = Ticket.query.filter_by(status='fechado').count()
+    if current_user.is_admin():
+        base_query = Ticket.query
+    elif current_user.role == 'tecnico':
+        base_query = Ticket.query.filter(
+            (Ticket.assignee_id == current_user.id) | (Ticket.creator_id == current_user.id)
+        )
+    else:  # usuario
+        base_query = Ticket.query.filter(Ticket.creator_id == current_user.id)
+
+    total = base_query.count()
+    abertos = base_query.filter(Ticket.status == 'aberto').count()
+    em_andamento = base_query.filter(Ticket.status == 'em_andamento').count()
+    resolvidos = base_query.filter(Ticket.status == 'resolvido').count()
+    fechados = base_query.filter(Ticket.status == 'fechado').count()
 
     # Priority breakdown
-    critica = Ticket.query.filter_by(priority='critica').count()
-    alta = Ticket.query.filter_by(priority='alta').count()
-    media = Ticket.query.filter_by(priority='media').count()
-    baixa = Ticket.query.filter_by(priority='baixa').count()
+    critica = base_query.filter(Ticket.priority == 'critica').count()
+    alta = base_query.filter(Ticket.priority == 'alta').count()
+    media = base_query.filter(Ticket.priority == 'media').count()
+    baixa = base_query.filter(Ticket.priority == 'baixa').count()
 
-    recent_tickets = Ticket.query.order_by(Ticket.created_at.desc()).limit(5).all()
-
-    my_tickets = Ticket.query.filter(
-        (Ticket.creator_id == current_user.id) | (Ticket.assignee_id == current_user.id)
-    ).order_by(Ticket.updated_at.desc()).limit(5).all()
+    recent_tickets = base_query.order_by(Ticket.created_at.desc()).limit(5).all()
+    my_tickets = base_query.order_by(Ticket.updated_at.desc()).limit(5).all()
 
     return render_template('dashboard/index.html',
                            total=total,
