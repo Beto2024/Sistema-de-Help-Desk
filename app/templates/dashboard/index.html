@@ -5,7 +5,15 @@
 <!-- Header -->
 <div class="mb-8">
     <h1 class="text-2xl font-bold text-white">Dashboard</h1>
-    <p class="text-text-secondary mt-1">Visão geral do sistema de chamados</p>
+    <p class="text-text-secondary mt-1">
+        {% if current_user.is_admin() %}
+            Visão geral do sistema de chamados
+        {% elif current_user.role == 'tecnico' %}
+            Chamados atribuídos a mim
+        {% else %}
+            Meus chamados
+        {% endif %}
+    </p>
 </div>
 
 <!-- Stats Grid -->
@@ -134,8 +142,16 @@
     <!-- My Tickets -->
     <div class="card-gradient rounded-xl p-6">
         <div class="flex items-center justify-between mb-4">
-            <h2 class="text-lg font-semibold text-white">Meus Chamados</h2>
-            <a href="{{ url_for('tickets.list_tickets') }}?assignee=me"
+            <h2 class="text-lg font-semibold text-white">
+                {% if current_user.is_admin() %}
+                    Meus Chamados
+                {% elif current_user.role == 'tecnico' %}
+                    Chamados Atribuídos a Mim
+                {% else %}
+                    Meus Chamados
+                {% endif %}
+            </h2>
+            <a href="{{ url_for('tickets.list_tickets') }}"
                class="text-xs text-accent-amber hover:text-amber-400 transition-colors">
                 Ver todos →
             </a>
