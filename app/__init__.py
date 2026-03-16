@@ -29,6 +29,10 @@ def create_app(config_class=Config):
 
     with app.app_context():
         db.create_all()
+        from app.models import User
+        if User.query.first() is None:
+            from app.seed import seed_database
+            seed_database(db)
 
     @app.errorhandler(404)
     def not_found_error(error):

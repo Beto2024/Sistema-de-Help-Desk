@@ -2,7 +2,7 @@
 {% block title %}Login — Help Desk{% endblock %}
 
 {% block content %}
-<div class="min-h-screen flex items-center justify-center -mt-6">
+<div class="py-12 flex items-start justify-center">
     <div class="w-full max-w-md">
         <!-- Logo -->
         <div class="text-center mb-8">
@@ -67,6 +67,106 @@
                 </p>
             </div>
         </div>
+
+        <!-- Credentials Panel -->
+        <div class="card-gradient rounded-xl p-6 mt-6">
+            <div class="flex items-center gap-2 mb-4">
+                <span class="text-xl">🔑</span>
+                <h2 class="text-base font-semibold text-white">Credenciais de Teste</h2>
+                <span class="ml-auto text-xs text-text-secondary bg-slate-700 rounded-full px-2 py-0.5">Portfólio</span>
+            </div>
+            <p class="text-xs text-text-secondary mb-4">
+                Clique em qualquer linha para preencher o formulário automaticamente.
+            </p>
+
+            <div class="space-y-1.5">
+                <!-- Admin -->
+                <div onclick="fillCredentials('admin', 'admin123')"
+                     class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-slate-800/60 hover:bg-amber-500/10 border border-transparent hover:border-amber-500/30 cursor-pointer transition-all group">
+                    <span class="text-base">👑</span>
+                    <div class="flex-1 min-w-0">
+                        <span class="text-sm font-mono font-medium text-white group-hover:text-accent-amber transition-colors">admin</span>
+                        <span class="text-text-muted mx-1.5 text-xs">/</span>
+                        <span class="text-xs font-mono text-text-secondary">admin123</span>
+                    </div>
+                    <span class="text-xs px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 font-medium shrink-0">Administrador</span>
+                </div>
+
+                <!-- Técnico 1 -->
+                <div onclick="fillCredentials('carlos_tec', 'tec123')"
+                     class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-slate-800/60 hover:bg-blue-500/10 border border-transparent hover:border-blue-500/30 cursor-pointer transition-all group">
+                    <span class="text-base">🔧</span>
+                    <div class="flex-1 min-w-0">
+                        <span class="text-sm font-mono font-medium text-white group-hover:text-blue-400 transition-colors">carlos_tec</span>
+                        <span class="text-text-muted mx-1.5 text-xs">/</span>
+                        <span class="text-xs font-mono text-text-secondary">tec123</span>
+                    </div>
+                    <span class="text-xs px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 font-medium shrink-0">Técnico</span>
+                </div>
+
+                <!-- Técnico 2 -->
+                <div onclick="fillCredentials('ana_tec', 'tec123')"
+                     class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-slate-800/60 hover:bg-blue-500/10 border border-transparent hover:border-blue-500/30 cursor-pointer transition-all group">
+                    <span class="text-base">🔧</span>
+                    <div class="flex-1 min-w-0">
+                        <span class="text-sm font-mono font-medium text-white group-hover:text-blue-400 transition-colors">ana_tec</span>
+                        <span class="text-text-muted mx-1.5 text-xs">/</span>
+                        <span class="text-xs font-mono text-text-secondary">tec123</span>
+                    </div>
+                    <span class="text-xs px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 font-medium shrink-0">Técnico</span>
+                </div>
+
+                <!-- Usuário 1 -->
+                <div onclick="fillCredentials('joao_silva', 'user123')"
+                     class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-slate-800/60 hover:bg-green-500/10 border border-transparent hover:border-green-500/30 cursor-pointer transition-all group">
+                    <span class="text-base">👤</span>
+                    <div class="flex-1 min-w-0">
+                        <span class="text-sm font-mono font-medium text-white group-hover:text-green-400 transition-colors">joao_silva</span>
+                        <span class="text-text-muted mx-1.5 text-xs">/</span>
+                        <span class="text-xs font-mono text-text-secondary">user123</span>
+                    </div>
+                    <span class="text-xs px-2 py-0.5 rounded-full bg-green-500/20 text-green-400 font-medium shrink-0">Usuário</span>
+                </div>
+
+                <!-- Usuário 2 -->
+                <div onclick="fillCredentials('maria_santos', 'user123')"
+                     class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-slate-800/60 hover:bg-green-500/10 border border-transparent hover:border-green-500/30 cursor-pointer transition-all group">
+                    <span class="text-base">👤</span>
+                    <div class="flex-1 min-w-0">
+                        <span class="text-sm font-mono font-medium text-white group-hover:text-green-400 transition-colors">maria_santos</span>
+                        <span class="text-text-muted mx-1.5 text-xs">/</span>
+                        <span class="text-xs font-mono text-text-secondary">user123</span>
+                    </div>
+                    <span class="text-xs px-2 py-0.5 rounded-full bg-green-500/20 text-green-400 font-medium shrink-0">Usuário</span>
+                </div>
+
+                <!-- Usuário 3 -->
+                <div onclick="fillCredentials('pedro_costa', 'user123')"
+                     class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-slate-800/60 hover:bg-green-500/10 border border-transparent hover:border-green-500/30 cursor-pointer transition-all group">
+                    <span class="text-base">👤</span>
+                    <div class="flex-1 min-w-0">
+                        <span class="text-sm font-mono font-medium text-white group-hover:text-green-400 transition-colors">pedro_costa</span>
+                        <span class="text-text-muted mx-1.5 text-xs">/</span>
+                        <span class="text-xs font-mono text-text-secondary">user123</span>
+                    </div>
+                    <span class="text-xs px-2 py-0.5 rounded-full bg-green-500/20 text-green-400 font-medium shrink-0">Usuário</span>
+                </div>
+            </div>
+
+            <p class="text-xs text-text-secondary mt-4 text-center">
+                🎓 Projeto de demonstração — dados fictícios para fins de portfólio
+            </p>
+        </div>
     </div>
 </div>
+
+<script>
+/* AVISO: Credenciais expostas intencionalmente para fins de demonstração de portfólio.
+   NUNCA exponha credenciais reais desta forma em produção. */
+function fillCredentials(username, password) {
+    document.getElementById('username').value = username;
+    document.getElementById('password').value = password;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
 {% endblock %}
