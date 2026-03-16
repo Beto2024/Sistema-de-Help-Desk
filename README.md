@@ -73,13 +73,7 @@ venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### 4. Popule o banco com dados de exemplo (opcional)
-
-```bash
-python seed.py
-```
-
-### 5. Inicie a aplicação
+### 4. Inicie a aplicação
 
 ```bash
 python run.py
@@ -87,7 +81,11 @@ python run.py
 
 Acesse: **http://localhost:5000**
 
-## 🔑 Credenciais Padrão (após `seed.py`)
+> 💡 **Sem passos extras!** Na primeira execução, o banco de dados é populado automaticamente com dados de exemplo. Basta instalar as dependências e rodar `python run.py`.
+
+## 🔑 Credenciais de Acesso (carregadas automaticamente)
+
+As credenciais abaixo são populadas automaticamente na primeira execução. Elas também aparecem na **tela de login** — basta clicar em qualquer linha para preencher o formulário:
 
 | Perfil | Usuário | Senha |
 |---|---|---|
@@ -98,14 +96,17 @@ Acesse: **http://localhost:5000**
 | 👤 Usuário | `maria_santos` | `user123` |
 | 👤 Usuário | `pedro_costa` | `user123` |
 
+> 🔄 Para resetar o banco com dados frescos manualmente, execute `python seed.py` (isso apaga e recria todos os dados).
+
 ## 📁 Estrutura do Projeto
 
 ```
 10-Sistema-de-Help-Desk/
 ├── app/
-│   ├── __init__.py          # App factory
+│   ├── __init__.py          # App factory + auto-seed na primeira execução
 │   ├── models.py            # Modelos: User, Ticket, TicketHistory, Comment
 │   ├── forms.py             # Formulários WTF
+│   ├── seed.py              # Dados de exemplo (seed_database)
 │   ├── routes/
 │   │   ├── auth.py          # Login, registro, logout
 │   │   ├── tickets.py       # CRUD de chamados
@@ -120,7 +121,7 @@ Acesse: **http://localhost:5000**
 │       └── custom.css        # Estilos: badges, gradientes, glow
 ├── config.py
 ├── run.py
-├── seed.py
+├── seed.py                  # Reset manual do banco (opcional)
 └── requirements.txt
 ```
 
